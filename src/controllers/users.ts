@@ -1,6 +1,9 @@
 import e, { Request, Response, NextFunction } from 'express'
 import { PrismaClient } from "@prisma/client";
 
+// Fazendo um require da lib Bcrypt
+const bcrypt = require("bcrypt")
+
 const prisma = new PrismaClient()
 
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -9,7 +12,12 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     await prisma.$connect()
     // criando uma variavel que consulta no banco, "prisma.user.findMany()" jeito do PRISMA de consultar todos o dados de uma tabela no banco
     const result = await prisma.user.findMany({
-        include: {
+        // Fazendo um SELECT de SQL, em forma ed JSON
+        select: {
+            firstname: true,
+            lastname: true,
+            email: true,
+            username: true,
             profile: true
         }
     })
@@ -19,6 +27,32 @@ const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     })
 }
 
+const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    // Consultando um usuário pela id
+    let idUser: number = Number(req.params.id)
+
+    await prisma.$connect()
+    const result = await prisma.user.findUnique({
+        // Fazendo um SELECT de SQL, em forma ed JSON
+        select: {
+            firstname: true,
+            lastname: true,
+            email: true,
+            username: true,
+            profile: true
+        },
+        // Fazendo um WHERE de SQL, em forma ed JSON
+        where: {
+            id: idUser
+        }
+    })
+
+    return res.status(200).json({
+        message: result
+    })
+
+}
+
 const addUser = async (req: Request, res: Response, next: NextFunction) => {
     let firstname: string = req.body.firstname
     let lastname: string = req.body.lastname
@@ -26,6 +60,12 @@ const addUser = async (req: Request, res: Response, next: NextFunction) => {
     let username: string = req.body.username || firstname + lastname
     let password: string = req.body.password
     let biography: string = req.body.bio
+
+    // Encryptando dados do User, usando Await para esperando a função executar e ser criada
+    let cryptPassword = await createHash(password)
+    let hash = await createHash(email + password)
+
+
     // Aguardando conexão com o banco
     await prisma.$connect()
      // criando uma variavel de resultado
@@ -35,17 +75,26 @@ const addUser = async (req: Request, res: Response, next: NextFunction) => {
             lastname: lastname,
             email: email,
             username: username,
-            password: password,
-            hash: "123456789",
+            password: cryptPassword,
+            hash: hash,
+        // Cadastrando a bio da tabela profile junto com a tabela User
                 profile: {
                     create: { bio: biography }
                 }
         }
     })
-
+    // Status 201 como resposta para uma requisição de cadastro
     return res.status(201).json({
         message: result
     })
 }
 
-export default { getAllUsers, addUser }
+
+// Criando a função para Encriptar os dados
+function createHash(data: string) {
+    let hash = bcrypt.hash(data, 12)
+    return hash
+    
+}
+
+export default { getAllUsers, getUserById ,addUser }
