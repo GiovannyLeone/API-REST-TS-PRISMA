@@ -56,7 +56,7 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
 const addUser = async (req: Request, res: Response, next: NextFunction) => {
     let firstname: string = req.body.firstname
     let lastname: string = req.body.lastname
-    let email: string = req.body.email 
+    let email: string = req.body.email
     let username: string = req.body.username || firstname + lastname
     let password: string = req.body.password
     let biography: string = req.body.bio
@@ -68,7 +68,7 @@ const addUser = async (req: Request, res: Response, next: NextFunction) => {
 
     // Aguardando conexão com o banco
     await prisma.$connect()
-     // criando uma variavel de resultado
+    // criando uma variavel de resultado
     const result = await prisma.user.create({
         data: {
             firstname: firstname,
@@ -77,10 +77,10 @@ const addUser = async (req: Request, res: Response, next: NextFunction) => {
             username: username,
             password: cryptPassword,
             hash: hash,
-        // Cadastrando a bio da tabela profile junto com a tabela User
-                profile: {
-                    create: { bio: biography }
-                }
+            // Cadastrando a bio da tabela profile junto com a tabela User
+            profile: {
+                create: { bio: biography }
+            }
         }
     })
     // Status 201 como resposta para uma requisição de cadastro
@@ -89,12 +89,97 @@ const addUser = async (req: Request, res: Response, next: NextFunction) => {
     })
 }
 
+const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    const reqIdUser: number = Number(req.params.id)
+    const reqFirstname: string = req.body.firstname
+    const reqLastname: string = req.body.lastname
+    const reqUsername: string = req.body.username
+    const reqEmail: string = req.body.email
+    const reqPassword: string = req.body.password
+
+    let firstnameRes = ""
+    let lastnameRes = ""
+    let usernameRes = ""
+    let emailRes = ""
+
+    let cryptPassword = await createHash(reqPassword)
+    // let hash = await createHash(reqEmail + reqPassword)
+
+    try {
+        await prisma.$connect()
+        const result = await prisma.user.findUnique({
+            // Fazendo um WHERE de SQL, em forma ed JSON
+            where: {
+                id: reqIdUser
+            }
+        })
+
+        if (result) {
+
+            // Verifcando dados recebidos
+            if (!reqFirstname || reqFirstname === result.firstname) {
+                firstnameRes = result.firstname
+            }
+
+            if (!reqLastname || reqLastname === result.lastname) {
+                lastnameRes = result.lastname
+            }
+
+            if (!reqUsername || reqUsername === result.email) {
+                usernameRes = result.email
+            }
+            if (!reqEmail || reqEmail === result.email) {
+                emailRes = result.email
+            }
+            if (!reqPassword || reqPassword === result.password) {
+                cryptPassword = result.password
+            }
+        }
+
+
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Erro na atualização de dados!!!'
+        })
+
+    }
+
+    try {
+        await prisma.$connect()
+        await prisma.user.update({
+            where: { id: reqIdUser },
+            data: {
+                firstname: firstnameRes,
+                lastname: lastnameRes,
+                username: usernameRes,
+                email: emailRes,
+                password: cryptPassword,
+            }
+        })
+
+        // Status 200 como resposta para uma requisição de cadastro
+        return res.status(200).json({
+            message: 'Dados atualizados!',
+        })
+
+    } catch (error) {
+        return res.status(400).json({
+            message: 'Erro na atualização de dados!'
+        })
+    }
+
+}
+
 
 // Criando a função para Encriptar os dados
 function createHash(data: string) {
-    let hash = bcrypt.hash(data, 12)
-    return hash
-    
+    try {
+        let hash = bcrypt.hash(data, 12)
+        return hash
+    } catch (error) {
+        return false
+    }
+
 }
 
-export default { getAllUsers, getUserById ,addUser }
+export default { getAllUsers, getUserById, addUser, updateUser }
