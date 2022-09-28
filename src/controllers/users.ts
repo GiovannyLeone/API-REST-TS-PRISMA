@@ -101,6 +101,8 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     let lastnameRes = ""
     let usernameRes = ""
     let emailRes = ""
+    let passwordRes = ""
+    let hashRes = ""
 
     let cryptPassword = await createHash(reqPassword)
     // let hash = await createHash(reqEmail + reqPassword)
@@ -115,27 +117,15 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
         })
 
         if (result) {
-
             // Verifcando dados recebidos
-            if (!reqFirstname || reqFirstname === result.firstname) {
-                firstnameRes = result.firstname
-            }
+            firstnameRes = reqFirstname ? reqFirstname : result.firstname
 
-            if (!reqLastname || reqLastname === result.lastname) {
-                lastnameRes = result.lastname
-            }
+            lastnameRes = reqLastname ? reqLastname : result.lastname
 
-            if (!reqUsername || reqUsername === result.email) {
-                usernameRes = result.email
-            }
-            if (!reqEmail || reqEmail === result.email) {
-                emailRes = result.email
-            }
-            if (!reqPassword || reqPassword === result.password) {
-                cryptPassword = result.password
-            }
+            usernameRes = reqUsername ? reqUsername : result.username
+
+            passwordRes = reqPassword ? cryptPassword : result.password
         }
-
 
     } catch (error) {
         return res.status(400).json({
