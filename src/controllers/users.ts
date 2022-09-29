@@ -117,15 +117,17 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
 
         if (result) {
             // Verifcando dados recebidos
-            firstnameRes = reqFirstname ? reqFirstname : result.firstname
+            firstnameRes    = reqFirstname ? reqFirstname : result.firstname
 
-            lastnameRes  = reqLastname ? reqLastname : result.lastname
+            lastnameRes     = reqLastname ? reqLastname : result.lastname
 
-            usernameRes  = reqUsername ? reqUsername : result.username
+            usernameRes     = reqUsername ? reqUsername : result.username
+            
+            emailRes        = reqEmail ? reqEmail : result.email
 
-            passwordRes  = reqPassword ? createHash(reqPassword) : result.password
+            passwordRes     = reqPassword ? createHash(reqPassword) : result.password
 
-            hashRes      = reqHash ? createHash(reqEmail + reqPassword) : result.hash
+            hashRes         = reqPassword ? createHash(emailRes + reqPassword) : result.hash
         }
 
     } catch (error) {
