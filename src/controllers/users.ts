@@ -96,17 +96,16 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     const reqUsername: string = req.body.username
     const reqEmail: string = req.body.email
     const reqPassword: string = req.body.password
+    const reqHash: string = req.body.hash
 
     let firstnameRes = ""
-    let lastnameRes = ""
-    let usernameRes = ""
-    let emailRes = ""
-    let passwordRes = ""
-    let hashRes = ""
+    let lastnameRes  = ""
+    let usernameRes  = ""
+    let emailRes     = ""
+    let passwordRes  = ""
+    let hashRes      = ""
 
-    let cryptPassword = await createHash(reqPassword)
     // let hash = await createHash(reqEmail + reqPassword)
-
     try {
         await prisma.$connect()
         const result = await prisma.user.findUnique({
@@ -120,11 +119,13 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
             // Verifcando dados recebidos
             firstnameRes = reqFirstname ? reqFirstname : result.firstname
 
-            lastnameRes = reqLastname ? reqLastname : result.lastname
+            lastnameRes  = reqLastname ? reqLastname : result.lastname
 
-            usernameRes = reqUsername ? reqUsername : result.username
+            usernameRes  = reqUsername ? reqUsername : result.username
 
-            passwordRes = reqPassword ? cryptPassword : result.password
+            passwordRes  = reqPassword ? createHash(reqPassword) : result.password
+
+            hashRes      = reqHash ? createHash(reqEmail + reqPassword) : result.hash
         }
 
     } catch (error) {
@@ -142,8 +143,9 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
                 firstname: firstnameRes,
                 lastname: lastnameRes,
                 username: usernameRes,
-                email: emailRes,
-                password: cryptPassword,
+                email:  emailRes,
+                password: passwordRes,
+                hash: hashRes,
             }
         })
 
