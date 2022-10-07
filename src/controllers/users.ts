@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 // Fazendo um require da lib Bcrypt
 const bcrypt = require("bcrypt")
+const axios  = require("axios")
 
 const prisma = new PrismaClient()
 
@@ -164,6 +165,16 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
+const getCep = async (req: Request, res: Response, next: NextFunction) => {
+    const cep: string = req.params.id
+
+    const response = (await axios.get(`https://viacep.com.br/ws/02849000/json/`)).data;          //await para o processo e aguarda o processamento desta requisicao, estou pedindo pra ele soh o parametro .data na requisicao ou .data.cep ou o atributo que eu quiser;
+    
+    return res.status(200).json({
+        message: response,
+    })   
+}
+
 
 // Criando a função para Encriptar os dados
 function createHash(data: string) {
@@ -176,4 +187,4 @@ function createHash(data: string) {
 
 }
 
-export default { getAllUsers, getUserById, addUser, updateUser }
+export default { getAllUsers, getUserById, addUser, updateUser, getCep }
