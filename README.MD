@@ -7,6 +7,8 @@ npm i express @types/express morgan
 
 npm i @types/morgan nodemon
 
+npm i axios
+
 #Install the ORM Prisma
 https://www.prisma.io/docs/getting-started/quickstart
 
